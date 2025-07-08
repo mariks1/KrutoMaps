@@ -1,0 +1,190 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MaryanMaps</title>
+
+        <link rel="stylesheet" href="css/reset.css">
+        <link rel="stylesheet" href="css/style.css">
+
+        <script src="js/script.js" defer></script>
+    </head>
+    <body>
+        <main class="main">
+            <div class="container">
+                <div class="map-settings">
+                    <h2>Настройки карты</h2>
+                        <div class="params_container">
+                            <h3>То, что вы хотите видеть рядом</h3>
+                            <div class="autocomplete">
+                                <input type="text" class="input" placeholder="Начните вводить..." id="wantSee">
+                                <div class="dropdown-content autocomplete-dropdown" id="wantSeeSuggestions"></div>
+                            </div>
+                            <div class="tags_container" id="wantSeeTags"></div>
+                        </div>
+                        <div class="params_container">
+                            <h3>То, что вы хотите <span>не видеть</span> рядом</h3>
+                            <div class="autocomplete">
+                                <input type="text" class="input" placeholder="Начните вводить..." id="dontWantSee">
+                                <div class="dropdown-content autocomplete-dropdown" id="dontWantSeeSuggestions"></div>
+                            </div>
+                            <div class="tags_container" id="dontWantSeeTags"></div>
+                        </div>                
+                        <div class="params_container" id="extraSettings">
+                            <h3>Дополнительные параметры</h3>
+                            <div class="input_container price-container">
+                                <div class="label">Цена:</div>
+                                <div class="inputs-row">
+                                    <div class="input-wrapper">
+                                        <input type="text" class="input" placeholder="" id="priceFrom">
+                                        <span class="clear-btn" id="clearPriceFrom">
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M1 1L11 11M11 1L1 11" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="input-wrapper">
+                                        <input type="text" class="input" placeholder="" id="priceTo">
+                                        <span class="clear-btn" id="clearPriceTo">
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M1 1L11 11M11 1L1 11" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dropdown_container floor-container" id="floorOption">
+                                <div class="label">Этаж:</div>
+                                <div class="dropdown" id="dropdown1">
+                                    <button id="dropdown1Btn" class="dropbtn">
+                                        <span class="dropbtn_selected">Любой</span>
+                                        <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="dropdown-content">
+                                        <label><input type="radio" name="floorOption" value="Любой" checked> Любой</label>
+                                        <label><input type="radio" name="floorOption" value="Только 1-й"> Только 1-й</label>
+                                        <label><input type="radio" name="floorOption" value="До 5-го"> До 5-го</label>
+                                        <label><input type="radio" name="floorOption" value="Не 1-й">Не 1-й</label>
+                                        <label><input type="radio" name="floorOption" value="Не последний"> Не последний</label>
+                                    </div>
+                                </div>                        
+                            </div>
+                            <div class="dropdown_container type-container" id="placeOption">
+                                <div class="label">Тип помещения: </div>                        
+                                <div class="dropdown" id="dropdown2">
+                                    <button id="dropdown2Btn" class="dropbtn">
+                                        <span class="dropbtn_selected">Любой</span>
+                                        <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="dropdown-content place-dropdown">
+                                        <label><input class="checkbox" type="checkbox" value="Любой" checked> Любой</label>
+                                        <label><input class="checkbox" type="checkbox" value="Офисные">Офисные</label>
+                                        <label><input class="checkbox" type="checkbox" value="Производственные">Производственные</label>
+                                        <label><input class="checkbox" type="checkbox" value="Торговые">Торговые</label>
+                                    </div>
+                                </div>                        
+                            </div>
+                            <div class="input_container area-container">
+                                <div class="label">Площадь:</div>
+                                <div class="inputs-row">
+                                    <div class="input-wrapper">
+                                        <input type="text" class="input" placeholder="" id="areaFrom">
+                                        <span class="clear-btn" id="clearAreaFrom">
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M1 1L11 11M11 1L1 11" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="input-wrapper">
+                                        <input type="text" class="input" placeholder="" id="areaTo">
+                                        <span class="clear-btn" id="clearAreaTo">
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M1 1L11 11M11 1L1 11" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <button class="btn" onclick="sendData()">
+                        <span>Подобрать место</span>
+                        <svg class="arrow-right" width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.5 12H19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12.5 5L19.5 12L12.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>                            
+                    </button>
+                </div>
+                <div class="map">
+                    <img src="images/map.png" alt="">
+                </div>
+                <div class="map-descr">
+                    <h1>KrutoMaps</h1>
+                    <p>Аналитика крутости места для вашего бизнеса</p>
+                    <div class="best_places">
+                        <h2 class="place">Крутейшие места</h2>
+                        <button class="place-btn">
+                            <span>ул. Эскобара</span>
+                            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21.5 10C21.5 17 12.5 23 12.5 23C12.5 23 3.5 17 3.5 10C3.5 7.61305 4.44821 5.32387 6.13604 3.63604C7.82387 1.94821 10.1131 1 12.5 1C14.8869 1 17.1761 1.94821 18.864 3.63604C20.5518 5.32387 21.5 7.61305 21.5 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12.5 13C14.1569 13 15.5 11.6569 15.5 10C15.5 8.34315 14.1569 7 12.5 7C10.8431 7 9.5 8.34315 9.5 10C9.5 11.6569 10.8431 13 12.5 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>                            
+                        </button>
+                        <button class="place-btn">
+                            <span>ул. Чпок Стрит</span>
+                            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21.5 10C21.5 17 12.5 23 12.5 23C12.5 23 3.5 17 3.5 10C3.5 7.61305 4.44821 5.32387 6.13604 3.63604C7.82387 1.94821 10.1131 1 12.5 1C14.8869 1 17.1761 1.94821 18.864 3.63604C20.5518 5.32387 21.5 7.61305 21.5 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12.5 13C14.1569 13 15.5 11.6569 15.5 10C15.5 8.34315 14.1569 7 12.5 7C10.8431 7 9.5 8.34315 9.5 10C9.5 11.6569 10.8431 13 12.5 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>                            
+                        </button>
+                        <button class="place-btn">
+                            <span>пер. Трубный</span>
+                            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21.5 10C21.5 17 12.5 23 12.5 23C12.5 23 3.5 17 3.5 10C3.5 7.61305 4.44821 5.32387 6.13604 3.63604C7.82387 1.94821 10.1131 1 12.5 1C14.8869 1 17.1761 1.94821 18.864 3.63604C20.5518 5.32387 21.5 7.61305 21.5 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12.5 13C14.1569 13 15.5 11.6569 15.5 10C15.5 8.34315 14.1569 7 12.5 7C10.8431 7 9.5 8.34315 9.5 10C9.5 11.6569 10.8431 13 12.5 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>                            
+                        </button>
+                        <button class="place-btn">
+                            <span>пр. Мэтью Саливан</span>
+                            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21.5 10C21.5 17 12.5 23 12.5 23C12.5 23 3.5 17 3.5 10C3.5 7.61305 4.44821 5.32387 6.13604 3.63604C7.82387 1.94821 10.1131 1 12.5 1C14.8869 1 17.1761 1.94821 18.864 3.63604C20.5518 5.32387 21.5 7.61305 21.5 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12.5 13C14.1569 13 15.5 11.6569 15.5 10C15.5 8.34315 14.1569 7 12.5 7C10.8431 7 9.5 8.34315 9.5 10C9.5 11.6569 10.8431 13 12.5 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>                            
+                        </button>
+                    </div>
+                    <form class="params_container">
+                        <h3>Отобразить на карте</h3>
+                        <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Все</label>
+                        <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Предпочтительные объекты</label>
+                        <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Непредпочтительные объекты</label>
+                        <button class="btn">
+                            <span>Применить </span>
+                            <svg class="arrow-right" width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.5 12H19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12.5 5L19.5 12L12.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>                            
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+        <div class="modal" id="paramsModal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h3>Все параметры</h3>
+                <div class="modal-section">
+                    <h4>То, что вы хотите видеть рядом</h4>
+                    <div class="tags_container" id="wantSeeModalTags"></div>
+                </div>
+                <div class="modal-section">
+                    <h4>То, что вы хотите не видеть рядом</h4>
+                    <div class="tags_container" id="dontWantSeeModalTags"></div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
