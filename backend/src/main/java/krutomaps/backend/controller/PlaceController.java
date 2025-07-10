@@ -2,10 +2,10 @@ package krutomaps.backend.controller;
 
 import krutomaps.backend.entity.Place;
 import krutomaps.backend.repository.PlaceRepository;
+import krutomaps.backend.repository.RealtyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 public class PlaceController {
 
     private final PlaceRepository placeRepository;
-
 
     @GetMapping("/rubrics")
     @Cacheable("rubricsCache")
