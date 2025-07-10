@@ -1,17 +1,19 @@
-// TODO с бекэнда
-const suggestions = [
-    "Кофейни",
-    "Пекарни",
-    "Пенисы",
-    "Аптеки",
-    "Супермаркеты",
-    "Парки",
-    "Рестораны",
-    "Школы",
-    "Больницы",
-    "Фитнес-центры",
-    "Кинотеатры"
-];
+let rubrics = [];
+
+async function fetchRubrics() {
+    try {
+        const response = await fetch('http://localhost:8080/rubrics');
+        if (!response.ok) {
+            throw new Error('Ошибка сети при загрузке рубрик');
+        }
+        rubrics = await response.json();
+        // Сортировка на фронтенде, если бэкенд не сортирует
+        rubrics.sort((a, b) => a.localeCompare(b, 'ru'));
+    } catch (error) {
+        console.error('Ошибка загрузки рубрик:', error);
+        // Можно добавить резервный список или сообщение об ошибке
+    }
+}
 
 // Объект для хранения данных
 const formData = {
@@ -112,20 +114,23 @@ function populateModalTags() {
 // Функция для фильтрации и сортировки предложений
 function filterSuggestions(input, suggestionsList) {
     const query = input.toLowerCase().trim();
-    return suggestionsList
-        .filter(item => item.toLowerCase().includes(query))
-        .sort((a, b) => a.localeCompare(b));
+    return suggestionsList.filter(item => item.toLowerCase().includes(query));
 }
 
-// Функция для отображения предложений в выпадающем списке
-function showSuggestions(inputElement, suggestionsContainer, array, updateButtonFn) {
+function showSuggestions(inputElement, suggestionsContainer, array, updateButtonFn, suggestionsList) {
+    // Проверка, загружены ли данные
+    if (suggestionsList.length === 0) {
+        suggestionsContainer.innerHTML = '<div>Загрузка...</div>';
+        suggestionsContainer.style.display = 'block';
+        return;
+    }
+
     const query = inputElement.value;
     suggestionsContainer.innerHTML = '';
     
-    // Фильтруем предложения, исключая уже выбранные теги
     const filteredSuggestions = query.trim() === ''
-        ? suggestions.filter(item => !array.includes(item)) // Показываем только те, которых нет в массиве
-        : filterSuggestions(query, suggestions).filter(item => !array.includes(item));
+        ? suggestionsList.filter(item => !array.includes(item))
+        : filterSuggestions(query, suggestionsList).filter(item => !array.includes(item));
     
     if (filteredSuggestions.length > 0) {
         filteredSuggestions.forEach(suggestion => {
@@ -147,23 +152,24 @@ function showSuggestions(inputElement, suggestionsContainer, array, updateButton
     }
 }
 
+
 // Обработчик для "Хочу видеть"
 function updateWantSeeButton() {
     updateTagsDisplay(wantToSeeTagsContainer, formData.wantToSeeArray, updateWantSeeButton);
 }
 
 wantToSeeInput.addEventListener('input', () => {
-    showSuggestions(wantToSeeInput, wantToSeeSuggestions, formData.wantToSeeArray, updateWantSeeButton);
+    showSuggestions(wantToSeeInput, wantToSeeSuggestions, formData.wantToSeeArray, updateWantSeeButton, rubrics);
 });
 
 wantToSeeInput.addEventListener('focus', () => {
-    showSuggestions(wantToSeeInput, wantToSeeSuggestions, formData.wantToSeeArray, updateWantSeeButton);
+    showSuggestions(wantToSeeInput, wantToSeeSuggestions, formData.wantToSeeArray, updateWantSeeButton, rubrics);
 });
 
 wantToSeeInput.addEventListener('blur', () => {
     setTimeout(() => {
         wantToSeeSuggestions.style.display = 'none';
-    }, 200); // Delay to allow clicking suggestions
+    }, 200);
 });
 
 // Обработчик для "Не хочу видеть"
@@ -172,17 +178,17 @@ function updateDontWantSeeButton() {
 }
 
 dontWantToSeeInput.addEventListener('input', () => {
-    showSuggestions(dontWantToSeeInput, dontWantToSeeSuggestions, formData.dontWantToSeeArray, updateDontWantSeeButton);
+    showSuggestions(dontWantToSeeInput, dontWantToSeeSuggestions, formData.dontWantToSeeArray, updateDontWantSeeButton, rubrics);
 });
 
 dontWantToSeeInput.addEventListener('focus', () => {
-    showSuggestions(dontWantToSeeInput, dontWantToSeeSuggestions, formData.dontWantToSeeArray, updateDontWantSeeButton);
+    showSuggestions(dontWantToSeeInput, dontWantToSeeSuggestions, formData.dontWantToSeeArray, updateDontWantSeeButton, rubrics);
 });
 
 dontWantToSeeInput.addEventListener('blur', () => {
     setTimeout(() => {
         dontWantToSeeSuggestions.style.display = 'none';
-    }, 200); // Delay to allow clicking suggestions
+    }, 200);
 });
 
 // Обработчик для закрытия модального окна через крестик
@@ -301,6 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
         priceToInput.value = '';
         formData.priceTo = '';
     });
+
+    fetchRubrics();
 
 
 });
