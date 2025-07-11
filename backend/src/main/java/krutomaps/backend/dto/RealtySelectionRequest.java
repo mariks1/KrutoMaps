@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ChooseRealtyRequest {
+public class RealtySelectionRequest {
     private List<String> wantToSee;
     private List<String> dontWantToSee;
     private Integer priceFrom;

@@ -1,8 +1,9 @@
 package krutomaps.backend.controller;
 
 import krutomaps.backend.dto.AreaRangeResponse;
-import krutomaps.backend.dto.ChooseRealtyRequest;
+import krutomaps.backend.dto.RealtySelectionRequest;
 import krutomaps.backend.dto.PriceRangeResponse;
+import krutomaps.backend.dto.RealtySelectionResponse;
 import krutomaps.backend.entity.Realty;
 import krutomaps.backend.service.RealtyService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class RealtyController {
     private final RealtyService realtyService;
 
     @PostMapping("/select-realty")
-    public List<Realty> selectRealty(@RequestBody ChooseRealtyRequest request) {
+    public RealtySelectionResponse selectRealty(@RequestBody RealtySelectionRequest request) {
         System.out.println("Получен запрос: " + request);
         return realtyService.findTop5ByCriteria(request);
     }

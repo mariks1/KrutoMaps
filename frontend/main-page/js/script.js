@@ -1,3 +1,5 @@
+"use strict";
+
 let rubrics = [];
 let MIN_PRICE = 0;
 let MAX_PRICE = 0;
@@ -315,7 +317,8 @@ const priceToInput = document.getElementById('priceTo');
 document.addEventListener('DOMContentLoaded', function() {
     const priceFromInput = document.getElementById('priceFrom');
     const priceToInput = document.getElementById('priceTo');
-
+    const mapImage = document.querySelector('.map img');
+    
     document.getElementById('clearPriceFrom').addEventListener('click', function() {
         priceFromInput.value = '';
         formData.priceFrom = '';
@@ -336,11 +339,100 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.priceTo = '';
     });
 
+    mapImage.addEventListener('load', () => {
+        if (window.markersData) {
+            showRealtyMarkers(window.markersData);
+        }
+    });
+
+    const checkboxes = document.querySelectorAll('.seeOnMap input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', showMarkersOnMap);
+        
+        if (checkbox.parentElement.textContent.includes("Недвижимость")) {
+            checkbox.checked = true;
+        }
+    });
+
     fetchRubrics();
     fetchPrice();
     fetchArea();
 
 });
+
+function showMarkersOnMap() {
+    if (!window.selectionData) return;
+    
+    const showRealty = document.querySelector('input[value="Недвижимость"]').checked;
+    const showPreferred = document.querySelector('input[value="Предпочтительные объекты"]').checked;
+    const showAvoided = document.querySelector('input[value="Непредпочтительные объекты"]').checked;
+    
+    clearMap();
+    
+    if (showRealty && window.selectionData.realtyList) {
+        showRealtyMarkers(window.selectionData.realtyList);
+    }
+    
+    if (showPreferred && window.selectionData.preferredPlaces) {
+        showPlaceMarkers(window.selectionData.preferredPlaces, 'green');
+    }
+    
+    if (showAvoided && window.selectionData.avoidedPlaces) {
+        showPlaceMarkers(window.selectionData.avoidedPlaces, 'red');
+    }
+}
+
+function showPlaceMarkers(places, color) {
+    const mapContainer = document.querySelector('.map');
+    const mapImage = mapContainer.querySelector('img');
+    const markersContainer = mapContainer.querySelector('.markers-container');
+    
+    const mapWidth = mapImage.clientWidth;
+    const mapHeight = mapImage.clientHeight;
+    
+    places.forEach(place => {
+        const { x, y } = convertCoordsToPixels(
+            place.lat, 
+            place.lon,
+            mapWidth,
+            mapHeight
+        );
+        
+        const marker = document.createElement('div');
+        marker.className = `place-marker ${color}-marker`;
+        marker.style.left = `${x}px`;
+        marker.style.top = `${y}px`;
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.innerHTML = `
+            <strong>${place.name}</strong><br>
+            Адрес: ${place.address}<br>
+            Рубрики: ${place.rubrics.join(', ')}
+        `;
+        
+        marker.appendChild(tooltip);
+        markersContainer.appendChild(marker);
+
+        marker.addEventListener('mouseenter', function() {
+            tooltip.style.display = 'block';
+            adjustTooltipPosition(marker, tooltip, mapContainer);
+            marker.style.zIndex = '100';
+        });
+
+        marker.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+            marker.style.zIndex = '';
+        });
+    });
+}
+
+function clearMap() {
+    const markersContainer = document.querySelector('.markers-container');
+    markersContainer.innerHTML = '';
+}
+
+
 
 function parsePriceValue(input) {
     return parseInt(input.value.replace(/[^\d]/g, '')) || 0;
@@ -476,12 +568,205 @@ async function sendData() {
         });
 
         if (!response.ok) {
-            throw new Error('Ошибка сети при отправке запроса');
+            throw new Error('Ошибка сети');
         }
 
-        const result = await response.text();
+        const result = await response.json();
         console.log('Ответ от бэкенда:', result);
+        window.selectionData = result;
+
+        document.querySelector('input[value="Недвижимость"]').checked = true;
+        document.querySelector('input[value="Предпочтительные объекты"]').checked = false;
+        document.querySelector('input[value="Непредпочтительные объекты"]').checked = false;
+
+        showMarkersOnMap();
     } catch (error) {
         console.error('Ошибка:', error);
     }
 }
+
+
+// ----------КАРТА-------------
+
+const MAP_BOUNDS = {
+  topLeft: { lat: 59.991791, lng: 30.202104 },
+  bottomRight: { lat: 59.840498, lng: 30.502827 }
+};
+
+function convertCoordsToPixels(lat, lng, mapWidth, mapHeight) {
+  const xRatio = (lng - MAP_BOUNDS.topLeft.lng) / 
+                (MAP_BOUNDS.bottomRight.lng - MAP_BOUNDS.topLeft.lng);
+  
+  const yRatio = (MAP_BOUNDS.topLeft.lat - lat) / 
+                (MAP_BOUNDS.topLeft.lat - MAP_BOUNDS.bottomRight.lat);
+  
+  return {
+    x: xRatio * mapWidth,
+    y: yRatio * mapHeight
+  };
+}
+
+function groupObjects(data) {
+  const groups = new Map();
+  
+  data.forEach(item => {
+    const key = `${item.point_x.toFixed(5)}_${item.point_y.toFixed(5)}`;
+    
+    if (!groups.has(key)) {
+      groups.set(key, {
+        count: 0,
+        items: [],
+        point_x: item.point_x,
+        point_y: item.point_y
+      });
+    }
+    
+    const group = groups.get(key);
+    group.count++;
+    group.items.push(item);
+  });
+  
+  return Array.from(groups.values());
+}
+
+function showRealtyMarkers(data) {
+  const mapContainer = document.querySelector('.map');
+  const mapImage = mapContainer.querySelector('img');
+  const markersContainer = mapContainer.querySelector('.markers-container');
+  
+  markersContainer.innerHTML = '';
+  
+  const mapWidth = mapImage.clientWidth;
+  const mapHeight = mapImage.clientHeight;
+  
+  const groupedData = groupObjects(data);
+  
+  groupedData.forEach(group => {
+    const { x, y } = convertCoordsToPixels(
+      group.point_y, 
+      group.point_x,
+      mapWidth,
+      mapHeight
+    );
+    
+    const marker = document.createElement('div');
+    marker.className = 'marker';
+    
+    if (group.count > 1) {
+      marker.classList.add('group-marker');
+      
+      const count = document.createElement('div');
+      count.className = 'marker-count';
+      count.textContent = group.count;
+      marker.appendChild(count);
+    }
+    
+    marker.style.left = `${x}px`;
+    marker.style.top = `${y}px`;
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    
+    group.items.forEach(item => {
+      const itemInfo = document.createElement('div');
+      itemInfo.className = 'tooltip-item';
+      itemInfo.innerHTML = `
+        <strong>${item.entity_name}</strong><br>
+        Адрес: ${item.address}<br>
+        Площадь: ${item.total_area} м²<br>
+        Цена: ${formatNumberWithSpaces(item.lease_price)} ₽
+      `;
+      tooltip.appendChild(itemInfo);
+    });
+    
+    marker.appendChild(tooltip);
+    
+    marker.addEventListener('mouseenter', function() {
+      document.querySelectorAll('.tooltip').forEach(t => {
+         t.style.display = 'none';
+      });
+
+    
+      tooltip.style.display = 'block';
+      adjustTooltipPosition(marker, tooltip, mapContainer);
+
+      marker.style.zIndex = '100';
+    });
+
+    marker.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+      marker.style.zIndex = '';
+    });
+
+    tooltip.addEventListener('mouseenter', function() {
+        this.style.display = 'block';
+    });
+  
+    tooltip.addEventListener('mouseleave', function() {
+        this.style.display = 'none';
+    });
+    
+    markersContainer.appendChild(marker);
+  });
+}
+
+function adjustTooltipPosition(marker, tooltip, mapContainer) {
+  const markerRect = marker.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const mapRect = mapContainer.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  
+  tooltip.style.bottom = '';
+  tooltip.style.top = '';
+  tooltip.style.left = '';
+  tooltip.style.right = '';
+  tooltip.style.transform = '';
+  
+  const spaceAbove = markerRect.top - mapRect.top;
+  const spaceBelow = mapRect.bottom - markerRect.bottom;
+  const spaceLeft = markerRect.left - mapRect.left;
+  const spaceRight = mapRect.right - markerRect.right;
+  
+  let verticalPosition = 'top';
+  if (spaceBelow > tooltipRect.height || spaceBelow > spaceAbove) {
+    verticalPosition = 'bottom';
+    tooltip.style.top = 'calc(100% + 10px)';
+  } else {
+    verticalPosition = 'top';
+    tooltip.style.bottom = 'calc(100% + 10px)';
+  }
+  
+  let horizontalPosition = 'center';
+  if (spaceLeft > tooltipRect.width / 2 && spaceRight > tooltipRect.width / 2) {
+    horizontalPosition = 'center';
+    tooltip.style.left = '50%';
+    tooltip.style.transform = 'translateX(-50%)';
+  } else if (spaceRight < tooltipRect.width) {
+    horizontalPosition = 'right';
+    tooltip.style.right = '0';
+  } else if (spaceLeft < tooltipRect.width) {
+    horizontalPosition = 'left';
+    tooltip.style.left = '0';
+  }
+  const tooltipTop = verticalPosition === 'bottom' ? 
+    markerRect.bottom + 10 : 
+    markerRect.top - tooltipRect.height - 10;
+    
+  const tooltipBottom = verticalPosition === 'top' ?
+    viewportHeight - markerRect.top + 10 :
+    viewportHeight - markerRect.bottom - tooltipRect.height - 10;
+  
+  if (tooltipTop < 0) {
+    tooltip.style.top = '10px';
+    tooltip.style.maxHeight = `${mapRect.bottom - markerRect.bottom - 20}px`;
+  } else if (tooltipBottom < 0) {
+    tooltip.style.bottom = '10px';
+    tooltip.style.maxHeight = `${markerRect.top - mapRect.top - 20}px`;
+  }
+}
+
+window.addEventListener('resize', () => {
+    if (window.selectionData) {
+        showMarkersOnMap();
+    }
+});

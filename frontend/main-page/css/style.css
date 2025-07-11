@@ -1,4 +1,32 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+:root {
+  --main-bg: #f6f5f7;
+  --main-font: 'Montserrat', sans-serif;
+  --accent: #FF4B2B;
+  --accent-light: #FF416C;
+  --input-border: #000000;
+  --input-radius: 24px;
+  --container-radius: 32px;
+  --tag-radius: 8px;
+  --modal-radius: 16px;
+  --marker-size: 28px;
+  --marker-color: #ff0000;
+  --marker-group-color: #ff7700;
+  --marker-border: 2px solid #fff;
+  --marker-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  --marker-z: 10;
+  --marker-z-hover: 20;
+  --marker-transition: transform 0.2s, z-index 0.3s;
+  --tooltip-bg: #fff;
+  --tooltip-border: 1px solid #ccc;
+  --tooltip-radius: 8px;
+  --tooltip-width: 250px;
+  --tooltip-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --tooltip-z: 1000;
+  --tooltip-arrow-size: 12px;
+  --tooltip-scrollbar-thumb: #FF4B2B;
+  --tooltip-scrollbar-track: #f0f0f0;
+}
 
 html {
     box-sizing: border-box;
@@ -10,10 +38,9 @@ html {
     box-sizing: border-box;
 }
 
-/* Общие стили */
 body {
-    background: #f6f5f7;
-    font-family: 'Montserrat', sans-serif;
+    background: var(--main-bg);
+    font-family: var(--main-font);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -32,7 +59,7 @@ body {
 .map-descr {
     display: flex;
     flex-direction: column;
-    gap: 45px; /* Adds vertical spacing between elements inside the form */
+    gap: 45px;
 }
 
 .map-descr h1 {
@@ -51,68 +78,67 @@ body {
     color: #fff;
 }
 
-/* Контейнер карты */
 .map {
+    position: relative;
     margin-top: 20px;
     margin-left: 50px;
     margin-right: 50px;
     box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-    border-radius: 32px;
+    border-radius: var(--container-radius);
     overflow: hidden;
     border: none;
     display: flex;
     justify-content: center;
     align-items: center;
-    max-width: 100%; /* Ограничиваем ширину контейнера */
-    max-height: 89vh; /* Ограничиваем высоту до 80% экрана */
+    max-width: 100%;
+    max-height: 89vh;
 }
 
 .map img {
-    width: 100%; /* Изображение занимает всю ширину контейнера */
-    height: auto; /* Сохраняем пропорции */
-    max-width: 100%; /* Ограничиваем максимальную ширину */
-    max-height: 90vh; /* Ограничиваем максимальную высоту */
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 90vh;
 }
 
-/* Контейнеры параметров */
 .params_container {
     border: 1px solid #ccc;
-    border-radius: 32px;
+    border-radius: var(--container-radius);
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adds vertical spacing between elements inside the form */
+    gap: 15px;
 }
 
-/* Поля ввода */
 .input {
     font-size: 16px;
     background-color: transparent;
     outline: 0;
-    border: 2px solid #000000;
-    border-radius: 24px;
+    border: 2px solid var(--input-border);
+    border-radius: var(--input-radius);
     width: 100%;
     padding: 14px 16px;
     font-weight: 500;
-    color: #000000;
+    color: var(--input-border);
+    box-sizing: border-box;
 }
 
-.input:hover {
-    border-color: #FF4B2B;
-}
-
+.input:hover,
 .input:focus {
+    border-color: var(--accent);
     outline: none;
-    border-color: #FF4B2B;
 }
 
+.input::placeholder {
+    font-size: 12px;
+    color: var(--input-border);
+}
 
-/* Кнопки */
 .btn {
     border-radius: 20px;
-    border: 1px solid #FF4B2B;
-    background-color: #FF4B2B;
-    color: #FFFFFF;
+    border: 1px solid var(--accent);
+    background-color: var(--accent);
+    color: #fff;
     font-size: 12px;
     font-weight: bold;
     padding: 12px 45px;
@@ -132,34 +158,30 @@ body {
 }
 
 .btn:focus {
-    outline: none;
+    outline: 2px solid var(--accent);
 }
 
-/* Кнопки выпадающего списка */
 .dropbtn {
     background-color: transparent;
-    border: 2px solid #000000;
+    border: 2px solid var(--input-border);
     padding: 14px 16px;
     width: 100%;
     text-align: left;
-    border-radius: 24px;
+    border-radius: var(--input-radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 16px;
     font-weight: 500;
-    color: #000000;
+    color: var(--input-border);
     cursor: pointer;
     transition: border-color 0.3s ease;
 }
 
-.dropbtn:hover {
-    border-color: #FF4B2B;
-}
-
+.dropbtn:hover,
 .dropbtn:focus {
+    border-color: var(--accent);
     outline: none;
-    border-color: #FF4B2B;
 }
 
 .dropdown {
@@ -175,17 +197,16 @@ body {
     margin-top: 8px;
     width: 100%;
     outline: 0;
-    border: 2px solid #000000;
+    border: 2px solid var(--input-border);
     background-color: #fff;
-    border-radius: 24px;
-    color: #000000;
-    padding: 0; /* Убрали padding, чтобы контролировать его внутри */
+    border-radius: var(--input-radius);
+    color: var(--input-border);
+    padding: 0;
     z-index: 1;
-    gap: 0; /* Убрали gap, чтобы управлять отступами через padding у label */
-    overflow: hidden; /* Обрезаем содержимое, выходящее за границы */
+    gap: 0;
+    overflow: hidden;
 }
 
-/* Стили для меток внутри выпадающего списка */
 .dropdown-content label {
     display: flex;
     align-items: center;
@@ -196,11 +217,11 @@ body {
     cursor: pointer;
     width: 100%;
     box-sizing: border-box;
-    border-radius: 0; /* Убираем радиус у отдельных label */
+    border-radius: 0;
 }
 
 .dropdown-content label:first-child {
-    border-top-left-radius: 20px; /* Синхронизируем с border-radius контейнера */
+    border-top-left-radius: 20px;
     border-top-right-radius: 20px;
 }
 
@@ -210,10 +231,9 @@ body {
 }
 
 .dropdown-content label:hover {
-    background-color: #f0f0f0; /* Эффект наведения */
+    background-color: #f0f0f0;
 }
 
-/* Autocomplete dropdown */
 .autocomplete {
     position: relative;
     width: 100%;
@@ -226,10 +246,10 @@ body {
     width: 100%;
     margin-top: 2px;
     outline: 0;
-    border: 2px solid #000000;
+    border: 2px solid var(--input-border);
     background-color: #fff;
-    border-radius: 24px;
-    color: #000000;
+    border-radius: var(--input-radius);
+    color: var(--input-border);
     padding: 10px 0;
     z-index: 10;
     max-height: 200px;
@@ -247,24 +267,21 @@ body {
     background-color: #f0f0f0;
 }
 
-
-/* Секция "Крутейшие места" */
 .best_places {
-    background: linear-gradient(to right, #FF4B2B, #FF416C);
-    color: #FFFFFF;
+    background: linear-gradient(to right, var(--accent), var(--accent-light));
+    color: #fff;
     padding: 12px;
-    border-radius: 32px;
+    border-radius: var(--container-radius);
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Adds spacing between heading and buttons */
+    gap: 10px;
 }
 
-/* Кнопки мест */
 .place-btn {
     background-color: transparent;
-    border: 1px solid #FFFFFF;
-    color: #FFFFFF;
-    border-radius: 24px;
+    border: 1px solid #fff;
+    color: #fff;
+    border-radius: var(--input-radius);
     padding: 12px 14px;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -292,30 +309,30 @@ body {
 .floor-container,
 .type-container {
     display: flex;
-    flex-direction: column; /* Вертикальная структура */
+    flex-direction: column;
     gap: 8px;
     width: 100%;
 }
 
 .price-container .label,
 .area-container .label {
-    flex: 0 0 auto; /* Метка не растягивается */
-    margin-right: 0; /* Убираем ненужный отступ */
+    flex: 0 0 auto;
+    margin-right: 0;
     white-space: nowrap;
 }
 
 .price-container .input-wrapper,
 .area-container .input-wrapper {
     display: flex;
-    gap: 8px; /* Промежуток между "От" и "До" */
+    gap: 8px;
     flex: 1;
     min-width: 0;
 }
 
 .price-container .input-wrapper > .input-wrapper,
 .area-container .input-wrapper > .input-wrapper {
-    flex: 1; /* Каждый input-wrapper занимает половину */
-    max-width: 50%; /* Ограничиваем ширину до 50% */
+    flex: 1;
+    max-width: 50%;
 }
 
 .input-wrapper {
@@ -327,7 +344,7 @@ body {
 .label {
     font-size: 16px;
     font-weight: 500;
-    color: #000000;
+    color: var(--input-border);
     white-space: nowrap;
 }
 .inputs-row {
@@ -337,23 +354,26 @@ body {
     width: 100%;
 }
 
-input[type="radio"] {
+input[type="radio"],
+input[type="checkbox"] {
     appearance: none;
     width: 24px;
     height: 24px;
-    border: 2px solid #000;
+    border: 2px solid var(--input-border);
     border-radius: 50%;
     cursor: pointer;
     position: relative;
     transition: all 0.3s ease;
 }
 
-input[type="radio"]:checked {
-    background-color: #FF4B2B;
-    border-color: #FF4B2B;
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
 }
 
-label input[type="radio"]:checked:before {
+label input[type="radio"]:checked:before,
+label input[type="checkbox"]:checked:before {
     content: "";
     background-color: #fff;
     border-radius: 50%;
@@ -365,59 +385,28 @@ label input[type="radio"]:checked:before {
     transform: translate(-50%, -50%);
 }   
 
-/* Чекбоксы */
-input[type="checkbox"] {
-    appearance: none;
-    width: 24px;
-    height: 24px;
-    border: 2px solid #000;
-    border-radius: 50%;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-input[type="checkbox"]:checked {
-    background-color: #FF4B2B;
-    border-color: #FF4B2B;
-}
-
-label input[type="checkbox"]:checked:before {
-    content: "";
-    background-color: #fff;
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* Заголовки */
 h1, h2, h3 {
     font-weight: 800;
 }
 
 h1 {
-    font-size: 36px;
+    font-size: 2.25rem;
     margin: 0;
     text-align: center;
 }
 
 h2 {
-    font-size: 20px;
+    font-size: 1.25rem;
     text-align: center;
 }
 
 h3 {
-    font-size: 18px;
+    font-size: 1.125rem;
 }
 
-/* Дополнительные стили */
 p {
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 0.875rem;
+    line-height: 1.4;
     letter-spacing: 0.5px;
 }
 
@@ -445,11 +434,11 @@ p {
 .tag {
     display: flex;
     align-items: center;
-    background-color: #FF4B2B;
-    color: #FFFFFF;
-    border-radius: 8px;
+    background-color: var(--accent);
+    color: #fff;
+    border-radius: var(--tag-radius);
     padding: 6px 12px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
     gap: 8px;
 }
@@ -457,8 +446,8 @@ p {
 .tag .remove-btn {
     background: none;
     border: none;
-    color: #FFFFFF;
-    font-size: 16px;
+    color: #fff;
+    font-size: 1rem;
     cursor: pointer;
     padding: 0;
     line-height: 1;
@@ -472,18 +461,17 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #FF4B2B;
-    color: #FFFFFF;
-    border-radius: 8px;
+    background-color: var(--accent);
+    color: #fff;
+    border-radius: var(--tag-radius);
     padding: 6px 12px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
     width: 40px;
     height: 28px;
 }
 
-/* Стили для модального окна */
 .modal {
     display: none;
     position: fixed;
@@ -499,7 +487,7 @@ p {
 
 .modal-content {
     background-color: #fff;
-    border-radius: 16px;
+    border-radius: var(--modal-radius);
     padding: 20px;
     width: 90%;
     max-width: 500px;
@@ -512,9 +500,9 @@ p {
     position: absolute;
     top: 10px;
     right: 15px;
-    font-size: 24px;
+    font-size: 1.5rem;
     cursor: pointer;
-    color: #000;
+    color: var(--input-border);
     z-index: 1001;
     pointer-events: auto;
 }
@@ -524,35 +512,244 @@ p {
 }
 
 .modal-section h4 {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     margin-bottom: 10px;
 }
 
-.input {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.input::placeholder {
-    font-size: 12px;
-    color: #000000;
-}
-
-/* Стили для кнопки очистки */
 .clear-btn {
     position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    display: none; /* Скрываем по умолчанию */
+    display: none;
 }
 
 .input-wrapper:has(.input:not(:placeholder-shown)) .clear-btn {
-    display: block; /* Показываем крестик, когда поле не пустое */
+    display: block;
 }
 
 .clear-btn:hover svg path {
-    stroke: #000; /* Изменяем цвет при наведении */
+    stroke: var(--input-border);
+}
+
+.markers-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.marker {
+  position: absolute;
+  width: var(--marker-size);
+  height: var(--marker-size);
+  background-color: var(--marker-color);
+  border-radius: 50%;
+  border: var(--marker-border);
+  box-shadow: var(--marker-shadow);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: var(--marker-z);
+  transition: var(--marker-transition);
+  outline: none;
+}
+
+.marker:focus {
+  box-shadow: 0 0 0 3px var(--accent);
+  z-index: var(--marker-z-hover);
+}
+
+.marker:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  z-index: var(--marker-z-hover);
+}
+
+.marker.group-marker {
+  background-color: var(--marker-group-color);
+  width: var(--marker-size);
+  height: var(--marker-size);
+}
+
+.marker-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  background: var(--tooltip-bg);
+  border: var(--tooltip-border);
+  border-radius: var(--tooltip-radius);
+  padding: 12px;
+  width: var(--tooltip-width);
+  max-height: min(300px, 50vh);
+  overflow-y: auto;
+  box-shadow: var(--tooltip-shadow);
+  z-index: var(--tooltip-z);
+  pointer-events: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tooltip-scrollbar-thumb) var(--tooltip-scrollbar-track);
+  box-sizing: border-box;
+}
+
+.tooltip:focus {
+  outline: 2px solid var(--accent);
+}
+
+.tooltip::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tooltip::-webkit-scrollbar-track {
+  background: var(--tooltip-scrollbar-track);
+  border-radius: 4px;
+}
+
+.tooltip::-webkit-scrollbar-thumb {
+  background-color: var(--tooltip-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.tooltip.top {
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: auto;
+}
+
+.tooltip.bottom {
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  top: auto;
+}
+
+.tooltip.right {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.tooltip.left {
+  left: 0;
+  transform: none;
+}
+
+.tooltip-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.tooltip-item:last-child {
+  border-bottom: none;
+}
+
+.tooltip-item strong {
+  color: var(--accent);
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  width: var(--tooltip-arrow-size);
+  height: var(--tooltip-arrow-size);
+  background: var(--tooltip-bg);
+  border: var(--tooltip-border);
+  border-top: none;
+  border-left: none;
+  z-index: calc(var(--tooltip-z) + 1);
+}
+
+.tooltip.top::after {
+  bottom: calc(100% - 6px);
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltip:not([style*="top"])::after {
+  top: calc(100% - 6px);
+  left: 50%;
+  transform: translateX(-50%) rotate(-135deg);
+}
+
+@media (max-width: 600px) {
+  .map-settings {
+    min-width: 100%;
+    gap: 10px;
+  }
+  .container {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 5px;
+  }
+  .map {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 16px;
+  }
+  .modal-content {
+    max-width: 98vw;
+    padding: 10px;
+  }
+  .tooltip {
+    width: 90vw;
+    max-width: 98vw;
+    font-size: 0.9rem;
+  }
+  .marker {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.place-marker {
+  position: absolute;
+  width: var(--marker-size);
+  height: var(--marker-size);
+  background-color: var(--marker-color);
+  border-radius: 50%;
+  box-shadow: var(--marker-shadow);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: var(--marker-z);
+  transition: var(--marker-transition);
+  outline: none;
+}
+
+.place-marker:focus {
+  box-shadow: 0 0 0 3px var(--accent);
+  z-index: var(--marker-z-hover);
+}
+
+.place-marker:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  z-index: var(--marker-z-hover);
+}
+
+
+.green-marker {
+    background-color: #34A853;
+}
+
+.red-marker {
+    background-color: #EA4335;
+}
+
+.place-marker .tooltip {
+    max-width: 300px;
+    padding: 8px;
+    font-size: 14px;
 }

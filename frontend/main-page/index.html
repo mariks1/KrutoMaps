@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaryanMaps</title>
-
+    <meta name="description" content="KrutoMaps — аналитика крутости места для вашего бизнеса. Подбор лучших локаций по параметрам.">
+    <title>KrutoMaps</title>
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/style.css">
-
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -121,6 +120,7 @@
             </div>
             <div class="map">
                 <img src="images/map.png" alt="">
+                <div class="markers-container"></div>
             </div>
             <div class="map-descr">
                 <h1>KrutoMaps</h1>
@@ -158,16 +158,9 @@
                 </div>
                 <form class="params_container">
                     <h3>Отобразить на карте</h3>
-                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Все</label>
-                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Предпочтительные объекты</label>
-                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Любой"> Непредпочтительные объекты</label>
-                    <button class="btn">
-                        <span>Применить </span>
-                        <svg class="arrow-right" width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5.5 12H19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12.5 5L19.5 12L12.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>                            
-                    </button>
+                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Недвижимость"> Недвижимость</label>
+                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Предпочтительные объекты"> Предпочтительные объекты</label>
+                    <label class="seeOnMap"><input class="checkbox" type="checkbox" value="Непредпочтительные объекты"> Непредпочтительные объекты</label>
                 </form>
             </div>
         </div>

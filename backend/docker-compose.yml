@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:latest
+    image: postgis/postgis:17-3.5
     container_name: my_postgres
     environment:
       POSTGRES_USER: admin
