@@ -2,7 +2,6 @@ package krutomaps.backend.controller;
 
 import krutomaps.backend.entity.Place;
 import krutomaps.backend.repository.PlaceRepository;
-import krutomaps.backend.repository.RealtyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;

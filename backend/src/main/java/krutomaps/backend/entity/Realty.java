@@ -21,39 +21,41 @@ public class Realty {
     private Long id;
 
     @Column(name = "point_x", nullable = false)
-    private Double point_x;
+    private Double pointX;
 
     @Column(name = "point_y", nullable = false)
-    private Double point_y;
+    private Double pointY;
 
     @Column(name = "main_type", nullable = false)
-    private String main_type;
+    private String mainType;
 
     @Column(name = "segment_type", nullable = false)
-    private String segment_type;
+    private String segmentType;
 
     @Column(name = "entity_name", nullable = false)
-    private String entity_name;
+    private String entityName;
 
     @Column(name = "total_area", nullable = false)
-    private Double total_area;
+    private Double totalArea;
 
     @Column(name = "floor")
     private Integer floor;
 
     @Column(name = "lease_price", nullable = false)
-    private Double lease_price;
+    private Double leasePrice;
 
     @Column(name = "additional_info", nullable = false)
-    private String additional_info;
+    private String additionalInfo;
 
     @Column(name = "source_info", nullable = false)
-    private String source_info;
+    private String sourceInfo;
 
     @Column(name = "address", nullable = false)
     private String address;
 
     @Column(name = "update_date", nullable = false)
-    private LocalDate update_date;
+    private LocalDate updateDate;
 
+    @Column(name = "square_num", nullable = false)
+    private Long squareNum;
 }

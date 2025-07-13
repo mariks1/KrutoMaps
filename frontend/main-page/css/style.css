@@ -724,7 +724,7 @@ p {
   transform: translate(-50%, -50%);
   cursor: pointer;
   pointer-events: auto;
-  z-index: var(--marker-z);
+  z-index: 9;
   transition: var(--marker-transition);
   outline: none;
 }

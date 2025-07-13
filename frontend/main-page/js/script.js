@@ -610,14 +610,14 @@ function groupObjects(data) {
   const groups = new Map();
   
   data.forEach(item => {
-    const key = `${item.point_x.toFixed(5)}_${item.point_y.toFixed(5)}`;
+    const key = `${item.pointX.toFixed(5)}_${item.pointY.toFixed(5)}`;
     
     if (!groups.has(key)) {
       groups.set(key, {
         count: 0,
         items: [],
-        point_x: item.point_x,
-        point_y: item.point_y
+        pointX: item.pointX,
+        pointY: item.pointY
       });
     }
     
@@ -633,82 +633,114 @@ function showRealtyMarkers(data) {
   const mapContainer = document.querySelector('.map');
   const mapImage = mapContainer.querySelector('img');
   const markersContainer = mapContainer.querySelector('.markers-container');
-  
+
   markersContainer.innerHTML = '';
-  
+
   const mapWidth = mapImage.clientWidth;
   const mapHeight = mapImage.clientHeight;
-  
-  const groupedData = groupObjects(data);
-  
-  groupedData.forEach(group => {
-    const { x, y } = convertCoordsToPixels(
-      group.point_y, 
-      group.point_x,
-      mapWidth,
-      mapHeight
-    );
-    
+
+  // Преобразуем координаты в пиксели
+  const pixelData = data.map(item => {
+    const { x, y } = convertCoordsToPixels(item.pointY, item.pointX, mapWidth, mapHeight);
+    return { ...item, px: x, py: y };
+  });
+
+  // Порог для группировки (в пикселях)
+  const THRESHOLD = 20;
+
+  // Строим граф связей
+  const graph = Array.from({ length: pixelData.length }, () => []);
+  for (let i = 0; i < pixelData.length; i++) {
+    for (let j = i + 1; j < pixelData.length; j++) {
+      const dx = pixelData[i].px - pixelData[j].px;
+      const dy = pixelData[i].py - pixelData[j].py;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < THRESHOLD) {
+        graph[i].push(j);
+        graph[j].push(i);
+      }
+    }
+  }
+
+  // Находим связные компоненты (кластеры)
+  const visited = new Array(pixelData.length).fill(false);
+  const clusters = [];
+  for (let i = 0; i < pixelData.length; i++) {
+    if (!visited[i]) {
+      const component = [];
+      dfs(i, graph, visited, component);
+      clusters.push(component.map(index => pixelData[index]));
+    }
+  }
+
+  function dfs(node, graph, visited, component) {
+    if (visited[node]) return;
+    visited[node] = true;
+    component.push(node);
+    for (const neighbor of graph[node]) {
+      dfs(neighbor, graph, visited, component);
+    }
+  }
+
+  // Создаем маркеры для каждой группы
+  clusters.forEach(cluster => {
+    if (cluster.length === 0) return;
+    const sumX = cluster.reduce((sum, item) => sum + item.px, 0);
+    const sumY = cluster.reduce((sum, item) => sum + item.py, 0);
+    const avgX = sumX / cluster.length;
+    const avgY = sumY / cluster.length;
+
     const marker = document.createElement('div');
     marker.className = 'marker';
-    
-    if (group.count > 1) {
+    if (cluster.length > 1) {
       marker.classList.add('group-marker');
-      
       const count = document.createElement('div');
       count.className = 'marker-count';
-      count.textContent = group.count;
+      count.textContent = cluster.length;
       marker.appendChild(count);
     }
-    
-    marker.style.left = `${x}px`;
-    marker.style.top = `${y}px`;
-    
+    marker.style.left = `${avgX}px`;
+    marker.style.top = `${avgY}px`;
+
     const tooltip = document.createElement('div');
     tooltip.className = 'tooltip';
-    
-    group.items.forEach(item => {
+    cluster.forEach(item => {
       const itemInfo = document.createElement('div');
       itemInfo.className = 'tooltip-item';
       itemInfo.innerHTML = `
-        <strong>${item.entity_name}</strong><br>
+        <strong>${item.entityName}</strong><br>
         Адрес: ${item.address}<br>
-        Площадь: ${item.total_area} м²<br>
-        Цена: ${formatNumberWithSpaces(item.lease_price)} ₽
+        Площадь: ${item.totalArea} м²<br>
+        Цена: ${formatNumberWithSpaces(item.leasePrice)} ₽
       `;
       tooltip.appendChild(itemInfo);
     });
-    
     marker.appendChild(tooltip);
-    
+
+    // Добавляем обработчики событий
     marker.addEventListener('mouseenter', function() {
       document.querySelectorAll('.tooltip').forEach(t => {
-         t.style.display = 'none';
+        t.style.display = 'none';
       });
-
-    
       tooltip.style.display = 'block';
       adjustTooltipPosition(marker, tooltip, mapContainer);
-
       marker.style.zIndex = '100';
     });
-
     marker.addEventListener('mouseleave', () => {
       tooltip.style.display = 'none';
       marker.style.zIndex = '';
     });
-
     tooltip.addEventListener('mouseenter', function() {
-        this.style.display = 'block';
+      this.style.display = 'block';
     });
-  
     tooltip.addEventListener('mouseleave', function() {
-        this.style.display = 'none';
+      this.style.display = 'none';
     });
-    
+
     markersContainer.appendChild(marker);
   });
 }
+
 
 function adjustTooltipPosition(marker, tooltip, mapContainer) {
   const markerRect = marker.getBoundingClientRect();
