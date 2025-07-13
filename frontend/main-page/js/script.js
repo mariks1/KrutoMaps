@@ -90,10 +90,11 @@ const wantSeeModalTags = document.getElementById('wantSeeModalTags');
 const dontWantToSeeModalTags = document.getElementById('dontWantSeeModalTags');
 const modalClose = document.querySelector('.modal-close');
 
-
 function createTag(text, container, array, updateButtonFn) {
     const tag = document.createElement('div');
     tag.className = 'tag';
+    tag.dataset.text = text;
+    tag.dataset.arrayType = array === formData.wantToSeeArray ? 'wantToSee' : 'dontWantToSee';
     
     const tagText = document.createElement('span');
     tagText.textContent = text;
@@ -104,14 +105,18 @@ function createTag(text, container, array, updateButtonFn) {
     
     removeBtn.addEventListener('click', (event) => {
         event.stopPropagation();
-        tag.remove();
-        const index = array.indexOf(text);
+        const textToRemove = tag.dataset.text;
+        const arrayType = tag.dataset.arrayType;
+        const arrayToUse = arrayType === 'wantToSee' ? formData.wantToSeeArray : formData.dontWantToSeeArray;
+        const index = arrayToUse.indexOf(textToRemove);
         if (index > -1) {
-            array.splice(index, 1);
+            arrayToUse.splice(index, 1);
             updateButtonFn();
-            updateTagsDisplay(container === wantSeeModalTags ? wantToSeeTagsContainer : dontWantToSeeTagsContainer, array, updateButtonFn);
+            const mainContainer = arrayType === 'wantToSee' ? wantToSeeTagsContainer : dontWantToSeeTagsContainer;
+            updateTagsDisplay(mainContainer, arrayToUse, updateButtonFn);
             populateModalTags();
         }
+        tag.remove();
     });
     
     tag.appendChild(tagText);
@@ -357,6 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchRubrics();
     fetchPrice();
     fetchArea();
+    toggleMapCheckboxes(false);
 
 });
 
@@ -578,6 +584,12 @@ async function sendData() {
         document.querySelector('input[value="Недвижимость"]').checked = true;
         document.querySelector('input[value="Предпочтительные объекты"]').checked = false;
         document.querySelector('input[value="Непредпочтительные объекты"]').checked = false;
+        
+        if (result.realtyList.length > 0 || result.preferredPlaces.length > 0 || result.avoidedPlaces.length > 0) {
+            toggleMapCheckboxes(true);
+        } else {
+            toggleMapCheckboxes(false);
+        }
 
         showMarkersOnMap();
     } catch (error) {
@@ -639,16 +651,13 @@ function showRealtyMarkers(data) {
   const mapWidth = mapImage.clientWidth;
   const mapHeight = mapImage.clientHeight;
 
-  // Преобразуем координаты в пиксели
   const pixelData = data.map(item => {
     const { x, y } = convertCoordsToPixels(item.pointY, item.pointX, mapWidth, mapHeight);
     return { ...item, px: x, py: y };
   });
 
-  // Порог для группировки (в пикселях)
   const THRESHOLD = 20;
 
-  // Строим граф связей
   const graph = Array.from({ length: pixelData.length }, () => []);
   for (let i = 0; i < pixelData.length; i++) {
     for (let j = i + 1; j < pixelData.length; j++) {
@@ -662,7 +671,6 @@ function showRealtyMarkers(data) {
     }
   }
 
-  // Находим связные компоненты (кластеры)
   const visited = new Array(pixelData.length).fill(false);
   const clusters = [];
   for (let i = 0; i < pixelData.length; i++) {
@@ -682,7 +690,6 @@ function showRealtyMarkers(data) {
     }
   }
 
-  // Создаем маркеры для каждой группы
   clusters.forEach(cluster => {
     if (cluster.length === 0) return;
     const sumX = cluster.reduce((sum, item) => sum + item.px, 0);
@@ -717,7 +724,6 @@ function showRealtyMarkers(data) {
     });
     marker.appendChild(tooltip);
 
-    // Добавляем обработчики событий
     marker.addEventListener('mouseenter', function() {
       document.querySelectorAll('.tooltip').forEach(t => {
         t.style.display = 'none';
@@ -802,3 +808,11 @@ window.addEventListener('resize', () => {
         showMarkersOnMap();
     }
 });
+
+
+function toggleMapCheckboxes(enabled) {
+    const checkboxes = document.querySelectorAll('.seeOnMap input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.disabled = !enabled;
+    });
+}

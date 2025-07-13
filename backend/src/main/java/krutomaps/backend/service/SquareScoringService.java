@@ -32,7 +32,7 @@ public class SquareScoringService {
     private final SquareScoreRepository squareScoreRepository;
     private final TransactionTemplate transactionTemplate;
 
-    @Scheduled(cron = "15 5 22 * * ?")
+    @Scheduled(cron = "0 0 4 * * ?")
     public void updateAllSquareScores() {
         System.out.println("Updating all square scores");
 

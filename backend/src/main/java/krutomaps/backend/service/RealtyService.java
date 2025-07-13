@@ -57,17 +57,23 @@ public class RealtyService {
 
     public RealtySelectionResponse findTop5ByCriteria(RealtySelectionRequest request) throws JsonProcessingException {
 
-        Square bestSquare = findBestSquare(request);
-        System.out.println(bestSquare.toString());
+        Specification<Realty> spec;
+        Square bestSquare = null;
 
-        List<Square> searchSquares = squareService.getNeighborSquares(bestSquare, 1);
+        if (!request.getWantToSee().isEmpty() || !request.getDontWantToSee().isEmpty()) {
+            bestSquare = findBestSquare(request);
 
-        searchSquares.add(bestSquare);
+            List<Square> searchSquares = squareService.getNeighborSquares(bestSquare, 1);
 
-        Specification<Realty> spec = buildSpecification(request)
-                .and((root, query, cb) -> root.get("squareNum").in(
-                        searchSquares.stream().map(Square::getId).collect(Collectors.toList())
-                ));
+            searchSquares.add(bestSquare);
+
+             spec = buildSpecification(request)
+                    .and((root, query, cb) -> root.get("squareNum").in(
+                            searchSquares.stream().map(Square::getId).collect(Collectors.toList())
+                    ));
+        } else {
+             spec = buildSpecification(request);
+        }
         List<Realty> candidates = realtyRepository.findAll(spec);
 
         List<ScoredRealty> scoredList = calculateRealtyScores(candidates, request, bestSquare);
@@ -134,6 +140,10 @@ public class RealtyService {
     public record ScoredRealty(Realty realty, double score) {}
 
     public List<ScoredRealty> calculateRealtyScores(List<Realty> candidates, RealtySelectionRequest request, Square bestSquare) {
+        if (bestSquare == null) {
+            return candidates.parallelStream().map(realty -> new ScoredRealty(realty, 0)).collect(Collectors.toList());
+        }
+
         List<Long> squareIds = candidates.stream()
                 .map(Realty::getSquareNum)
                 .distinct()

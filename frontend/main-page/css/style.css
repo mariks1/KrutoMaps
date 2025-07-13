@@ -354,8 +354,7 @@ body {
     width: 100%;
 }
 
-input[type="radio"],
-input[type="checkbox"] {
+input[type="radio"] {
     appearance: none;
     width: 24px;
     height: 24px;
@@ -366,14 +365,29 @@ input[type="checkbox"] {
     transition: all 0.3s ease;
 }
 
+input[type="checkbox"] {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--input-border);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 input[type="radio"]:checked,
 input[type="checkbox"]:checked {
     background-color: var(--accent);
     border-color: var(--accent);
 }
 
-label input[type="radio"]:checked:before,
-label input[type="checkbox"]:checked:before {
+label input[type="radio"]:checked:before {
     content: "";
     background-color: #fff;
     border-radius: 50%;
@@ -384,6 +398,19 @@ label input[type="checkbox"]:checked:before {
     left: 50%;
     transform: translate(-50%, -50%);
 }   
+
+label input[type="checkbox"]:checked:before {
+content: "";
+    width: 12px;
+    height: 6px;
+    border-bottom: 2px solid #fff;
+    border-left: 2px solid #fff;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+}   
+
 
 h1, h2, h3 {
     font-weight: 800;
@@ -427,11 +454,16 @@ p {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.tags_container:not(:empty) {
     margin-top: 8px;
     margin-bottom: 8px;
 }
 
 .tag {
+    min-width: 50px;
+    max-width: 150px;
     display: flex;
     align-items: center;
     background-color: var(--accent);
@@ -441,6 +473,13 @@ p {
     font-size: 0.875rem;
     font-weight: 500;
     gap: 8px;
+}
+
+.tag span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tag .remove-btn {
