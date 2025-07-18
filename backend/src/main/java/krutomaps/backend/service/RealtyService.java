@@ -4,29 +4,30 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import krutomaps.backend.dto.*;
-import krutomaps.backend.entity.Realty;
-import krutomaps.backend.entity.Square;
-import krutomaps.backend.entity.SquareScore;
+import krutomaps.backend.entity.RealtyEntity;
+import krutomaps.backend.entity.SquareEntity;
+import krutomaps.backend.entity.SquareScoreEntity;
 import krutomaps.backend.repository.PlaceRepository;
 import krutomaps.backend.repository.RealtyRepository;
 import krutomaps.backend.repository.SquareScoreRepository;
+import krutomaps.backend.utils.DistanceCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.criteria.Predicate;
-
-import static krutomaps.backend.utils.DistanceCalculator.calculateDistance;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
 public class RealtyService {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     private final RealtyRepository realtyRepository;
     private final PlaceRepository placeRepository;
@@ -34,89 +35,59 @@ public class RealtyService {
     private final SquareService squareService;
 
     @Cacheable("priceRange")
-    public PriceRangeResponse getPriceRange() {
-        Double minPrice = realtyRepository.findMinPrice();
-        Double maxPrice = realtyRepository.findMaxPrice();
-
-        return PriceRangeResponse.builder()
-                .minPrice(minPrice != null ? minPrice : 0)
-                .maxPrice(maxPrice != null ? maxPrice : 0)
+    public PriceRangeResponseDTO getPriceRange() {
+        return PriceRangeResponseDTO.builder()
+                .minPrice(realtyRepository.findMinPrice())
+                .maxPrice(realtyRepository.findMaxPrice())
                 .build();
     }
 
     @Cacheable("areaRange")
-    public AreaRangeResponse getAreaRange() {
-        Double minArea = realtyRepository.findMinArea();
-        Double maxArea = realtyRepository.findMaxArea();
-
-        return AreaRangeResponse.builder()
-                .minArea(minArea != null ? minArea : 0)
-                .maxArea(maxArea != null ? maxArea : 0)
+    public AreaRangeResponseDTO getAreaRange() {
+        return AreaRangeResponseDTO.builder()
+                .minArea(realtyRepository.findMinArea())
+                .maxArea(realtyRepository.findMaxArea())
                 .build();
     }
 
-    public RealtySelectionResponse findTop5ByCriteria(RealtySelectionRequest request) throws JsonProcessingException {
+    public RealtySelectionResponseDTO findTop5ByCriteria(RealtySelectionRequestDTO request) {
 
-        Specification<Realty> spec;
-        Square bestSquare = null;
+        SquareEntity bestSquare = chooseBestSquare(request);
+        Specification<RealtyEntity> spec = buildSpecification(request, bestSquare);
 
-        if (!request.getWantToSee().isEmpty() || !request.getDontWantToSee().isEmpty()) {
-            bestSquare = findBestSquare(request);
+        List<RealtyEntity> candidates = realtyRepository.findAll(spec);
+        List<RealtySummaryDTO> top5 = scoreAndPickTop5(candidates, request, bestSquare);
 
-            List<Square> searchSquares = squareService.getNeighborSquares(bestSquare, 1);
+        return RealtySelectionResponseDTO.builder()
+                .realtyEntityList(top5)
+                .preferredPlaces(getPlacesForRubrics(request.getWantToSee(), PlaceMarkerDTO.MarkerType.PREFERRED))
+                .avoidedPlaces(getPlacesForRubrics(request.getDontWantToSee(), PlaceMarkerDTO.MarkerType.AVOIDED))
+                .build();
+    }
 
-            searchSquares.add(bestSquare);
 
-             spec = buildSpecification(request)
-                    .and((root, query, cb) -> root.get("squareNum").in(
-                            searchSquares.stream().map(Square::getId).collect(Collectors.toList())
-                    ));
-        } else {
-             spec = buildSpecification(request);
+    private SquareEntity chooseBestSquare(RealtySelectionRequestDTO request) {
+        if ((request.getWantToSee() == null || request.getWantToSee().isEmpty()) &&
+                (request.getDontWantToSee() == null || request.getDontWantToSee().isEmpty())) {
+            return null;
         }
-        List<Realty> candidates = realtyRepository.findAll(spec);
-
-        List<ScoredRealty> scoredList = calculateRealtyScores(candidates, request, bestSquare);
-
-        List<Realty> topRealty = scoredList.stream()
-                .sorted(Comparator.comparingDouble(ScoredRealty::score).reversed())
-                .limit(5)
-                .map(ScoredRealty::realty)
-                .collect(Collectors.toList());
-
-        List<PlaceMarker> preferredPlaces = getPlacesForRubrics(request.getWantToSee(), "preferred");
-        List<PlaceMarker> avoidedPlaces = getPlacesForRubrics(request.getDontWantToSee(), "avoided");
-
-        return RealtySelectionResponse.builder()
-                .realtyList(topRealty)
-                .preferredPlaces(preferredPlaces)
-                .avoidedPlaces(avoidedPlaces)
-                .build();
-    }
-
-
-    private Square findBestSquare(RealtySelectionRequest request) {
         return squareService.getAllSquares().stream()
-                .max(Comparator.comparingDouble(square -> {
-                    try {
-                        return calculateSquareSelectionScore(square, request);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
-                }))
-                .orElseThrow(() -> new IllegalStateException("No squares found"));
+                .max(Comparator.comparingDouble(square ->
+                        safeCalc(() -> calcSquareScore(square, request))))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"No squares found"));
     }
 
-    private double calculateSquareSelectionScore(Square square, RealtySelectionRequest request) throws JsonProcessingException {
+    private double calcSquareScore(SquareEntity square, RealtySelectionRequestDTO request) throws JsonProcessingException {
 
-        SquareScore squareScore = squareScoreRepository.findById(square.getId())
-                .orElseGet(() -> SquareScore.builder()
+        SquareScoreEntity scoreEntity = squareScoreRepository
+                .findById(square.getId())
+                .orElseGet(() -> SquareScoreEntity.builder()
                         .id(square.getId())
                         .rubricScore("{}")
                         .build());
 
         Map<String, Double> rubricScores = mapper.readValue(
-                squareScore.getRubricScore(),
+                scoreEntity.getRubricScore(),
                 new TypeReference<>() {}
         );
 
@@ -137,129 +108,130 @@ public class RealtyService {
         return totalScore;
     }
 
-    public record ScoredRealty(Realty realty, double score) {}
-
-    public List<ScoredRealty> calculateRealtyScores(List<Realty> candidates, RealtySelectionRequest request, Square bestSquare) {
-        if (bestSquare == null) {
-            return candidates.parallelStream().map(realty -> new ScoredRealty(realty, 0)).collect(Collectors.toList());
-        }
-
-        List<Long> squareIds = candidates.stream()
-                .map(Realty::getSquareNum)
-                .distinct()
-                .toList();
-
-        List<SquareScore> squareScores = squareScoreRepository.findAllById(squareIds);
-
-        Map<Long, Map<String, Double>> rubricScoresMap = new HashMap<>();
-
-        for (SquareScore score : squareScores) {
-            try {
-                Map<String, Double> rubricScores = mapper.readValue(
-                        score.getRubricScore(),
-                        new TypeReference<>() {}
-                );
-                rubricScoresMap.put(score.getSquare().getId(), rubricScores);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return candidates.parallelStream().map(realty -> {
-            double score = 0.0;
-
-            double distanceToCenter = calculateDistance(
-                    bestSquare.getCenter_lat(), bestSquare.getCenter_lon(),
-                    realty.getPointX(), realty.getPointY()
-            );
-            double distanceFactor = 1.0 / (1 + distanceToCenter);
-            score += distanceFactor;
-
-            Map<String, Double> rubricScores = rubricScoresMap.get(realty.getSquareNum());
-            if (rubricScores != null) {
-                if (request.getWantToSee() != null) {
-                    for (String rubric : request.getWantToSee()) {
-                        Double rubricScore = rubricScores.get(rubric);
-                        if (rubricScore != null) {
-                            score += rubricScore * distanceFactor;
-                        }
-                    }
-                }
-
-                if (request.getDontWantToSee() != null) {
-                    for (String rubric : request.getDontWantToSee()) {
-                        Double rubricScore = rubricScores.get(rubric);
-                        if (rubricScore != null) {
-                            score -= rubricScore * distanceFactor;
-                        }
-                    }
-                }
-            }
-
-            return new ScoredRealty(realty, score);
-        }).collect(Collectors.toList());
-
-    }
-
-    private List<PlaceMarker> getPlacesForRubrics(List<String> rubrics, String markerType) {
-        if (rubrics == null || rubrics.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        String rubricsArray = "{" + rubrics.stream()
-                .map(r -> "\"" + r.replace("\"", "\\\"") + "\"")
-                .collect(Collectors.joining(",")) + "}";
-
-        return placeRepository.findByRubrics(rubricsArray).stream()
-                .map(place -> PlaceMarker.builder()
-                        .id(place.getId())
-                        .name(place.getName())
-                        .address(place.getAddress())
-                        .lat(place.getLat())
-                        .lon(place.getLon())
-                        .rubrics(place.getRubrics())
-                        .markerType(markerType)
-                        .build())
-                .collect(Collectors.toList());
-    }
-    private Specification<Realty> buildSpecification(RealtySelectionRequest request) {
+    private Specification<RealtyEntity> buildSpecification(RealtySelectionRequestDTO request, SquareEntity square) {
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> preds = new ArrayList<>();
 
-            if (request.getPriceFrom() != null && request.getPriceFrom() > 0) {
-                predicates.add(cb.ge(root.get("leasePrice"), request.getPriceFrom()));
+            opt(request.getPriceFrom()).ifPresent(v -> preds.add(cb.ge(root.get("leasePrice"), v)));
+            opt(request.getPriceTo()).ifPresent(v -> preds.add(cb.le(root.get("leasePrice"), v)));
+            opt(request.getAreaFrom()).ifPresent(v -> preds.add(cb.ge(root.get("totalArea"), v)));
+            opt(request.getAreaTo()).ifPresent(v -> preds.add(cb.le(root.get("totalArea"), v)));
+
+            switch (Objects.toString(request.getFloorOption(), "")) {
+                case "Только 1-й"  -> preds.add(cb.equal(root.get("floor"), 1));
+                case "До 5-го"     -> preds.add(cb.le(root.get("floor"), 5));
+                case "Не 1-й"      -> preds.add(cb.notEqual(root.get("floor"), 1));
+                default -> { }
+            }
+            if (request.getPlaceOptions() != null && !request.getPlaceOptions().contains("Любой")) {
+                preds.add(root.get("segmentType").in(request.getPlaceOptions()));
             }
 
-            if (request.getPriceTo() != null && request.getPriceTo() > 0) {
-                predicates.add(cb.le(root.get("leasePrice"), request.getPriceTo()));
+            preds.add(cb.isNotNull(root.get("pointX")));
+            preds.add(cb.isNotNull(root.get("pointY")));
+
+            if (square != null) {
+                List<Long> neighborIds = squareService.getNeighborSquares(square, 1).stream()
+                        .map(SquareEntity::getId)
+                        .collect(Collectors.toList());
+                neighborIds.add(square.getId());
+                preds.add(root.get("squareNum").in(neighborIds));
             }
 
-            String floorOption = request.getFloorOption();
-            if (floorOption != null && !floorOption.equals("Любой") && !floorOption.equals("Не последний")) {
-                switch (floorOption) {
-                    case "Только 1-й" -> predicates.add(cb.equal(root.get("floor"), 1));
-                    case "До 5-го" -> predicates.add(cb.le(root.get("floor"), 5));
-                    case "Не 1-й" -> predicates.add(cb.notEqual(root.get("floor"), 1));
-                }
-            }
-
-            List<String> placeOptions = request.getPlaceOptions();
-            if (placeOptions != null && !placeOptions.contains("Любой")) {
-                predicates.add(root.get("segmentType").in(placeOptions));
-            }
-
-            if (request.getAreaFrom() != null && request.getAreaFrom() > 0) {
-                predicates.add(cb.ge(root.get("totalArea"), request.getAreaFrom()));
-            }
-
-            if (request.getAreaTo() != null && request.getAreaTo() > 0) {
-                predicates.add(cb.le(root.get("totalArea"), request.getAreaTo()));
-            }
-
-            predicates.add(cb.isNotNull(root.get("pointX")));
-            predicates.add(cb.isNotNull(root.get("pointY")));
-
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return cb.and(preds.toArray(new Predicate[0]));
         };
     }
+
+    private List<RealtySummaryDTO> scoreAndPickTop5(List<RealtyEntity> src,
+                                                    RealtySelectionRequestDTO req,
+                                                    SquareEntity bestSquare) {
+        Map<Long, Map<String, Double>> rubricCache = loadRubricScores(src);
+
+        return src.stream()
+                .map(re -> new Scored(re, calcScore(re, req, bestSquare, rubricCache)))
+                .sorted(Comparator.comparingDouble(Scored::score).reversed())
+                .limit(5)
+                .map(sc -> toSummary(sc.entity))
+                .toList();
+    }
+
+    private Map<Long, Map<String, Double>> loadRubricScores(List<RealtyEntity> src) {
+        List<Long> ids = src.stream().map(RealtyEntity::getSquareNum).distinct().toList();
+
+        return squareScoreRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(
+                        sc -> sc.getSquareEntity().getId(),
+                        sc -> safeCalc(() -> mapper.readValue(sc.getRubricScore(), new TypeReference<>() {}))
+                ));
+    }
+
+    private double calcScore(RealtyEntity re,
+                             RealtySelectionRequestDTO req,
+                             SquareEntity bestSquare,
+                             Map<Long, Map<String, Double>> rubricCache) {
+
+        if (bestSquare == null) return 0;
+
+        double dist = DistanceCalculator.calculateDistance(
+                bestSquare.getCenterLat(), bestSquare.getCenterLon(),
+                re.getPointX(), re.getPointX());
+
+        double factor = 1 / (1 + dist);
+
+        double s = factor;
+
+        Map<String, Double> scores = rubricCache.get(re.getSquareNum());
+        if (scores != null) {
+            if (req.getWantToSee() != null)
+                s += req.getWantToSee().stream()
+                        .mapToDouble(r -> scores.getOrDefault(r, 0.0) * factor).sum();
+            if (req.getDontWantToSee() != null)
+                s -= req.getDontWantToSee().stream()
+                        .mapToDouble(r -> scores.getOrDefault(r, 0.0) * factor).sum();
+        }
+        return s;
+    }
+
+    private List<PlaceMarkerDTO> getPlacesForRubrics(List<String> rubrics, PlaceMarkerDTO.MarkerType type) {
+        if (rubrics == null || rubrics.isEmpty()) return List.of();
+        String[] rubricsArray = rubrics.toArray(new String[0]);
+        return placeRepository.findByRubrics(rubricsArray).stream()
+                .map(p -> PlaceMarkerDTO.builder()
+                        .id(p.getId())
+                        .name(p.getName())
+                        .address(p.getAddress())
+                        .latitude(p.getLat())
+                        .longitude(p.getLon())
+                        .rubrics(p.getRubrics())
+                        .markerType(type)
+                        .build())
+                .toList();
+    }
+
+    private record Scored(RealtyEntity entity, double score) { }
+
+    private RealtySummaryDTO toSummary(RealtyEntity e) {
+        return RealtySummaryDTO.builder()
+                .id(e.getId())
+                .address(e.getAddress())
+                .mainType(e.getMainType())
+                .segmentType(e.getSegmentType())
+                .leasePrice(e.getLeasePrice())
+                .latitude(e.getPointY())
+                .longitude(e.getPointX())
+                .totalArea(e.getTotalArea())
+                .build();
+    }
+
+    private <T> Optional<T> opt(T val) {
+        return Optional.ofNullable(val);
+    }
+
+    private <T> T safeCalc(ThrowingSupplier<T> s) {
+        try { return s.get(); } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
+        }
+    }
+    @FunctionalInterface private interface ThrowingSupplier<T> { T get() throws Exception; }
+
 }

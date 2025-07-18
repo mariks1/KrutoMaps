@@ -1,42 +1,83 @@
 package krutomaps.backend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import krutomaps.backend.dto.AreaRangeResponse;
-import krutomaps.backend.dto.RealtySelectionRequest;
-import krutomaps.backend.dto.PriceRangeResponse;
-import krutomaps.backend.dto.RealtySelectionResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import krutomaps.backend.dto.AreaRangeResponseDTO;
+import krutomaps.backend.dto.RealtySelectionRequestDTO;
+import krutomaps.backend.dto.PriceRangeResponseDTO;
+import krutomaps.backend.dto.RealtySelectionResponseDTO;
 import krutomaps.backend.service.RealtyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
+@Valid
+@Tag(name = "Realty", description = "Подбор и агрегаты по недвижимости")
 public class RealtyController {
 
     private final RealtyService realtyService;
 
-    @PostMapping("/select-realty")
-    public RealtySelectionResponse selectRealty(@RequestBody RealtySelectionRequest request) {
-        System.out.println("Получен запрос: " + request);
 
-        try {
-            return realtyService.findTop5ByCriteria(request);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    @PostMapping("/selection")
+    @Operation(
+            summary = "Подобрать топ‑5 объектов по критериям",
+            description = """
+            Возвращает до пяти объектов недвижимости, удовлетворяющих заданным фильтрам.
+            Если ни один объект не найден — код 204 (No Content).
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Найдены объекты",
+                    content = @Content(schema = @Schema(implementation = RealtySelectionResponseDTO.class))),
+            @ApiResponse(responseCode = "204", description = "Ничего не найдено"),
+            @ApiResponse(responseCode = "400", description = "Ошибка валидации входных данных")
+    })
+    public ResponseEntity<RealtySelectionResponseDTO> selectRealty(
+            @Valid
+            @Parameter(description = "Критерии отбора", required = true)
+            @RequestBody RealtySelectionRequestDTO request) {
+
+        log.info("POST /realty/selection {}", request);
+
+        RealtySelectionResponseDTO dto = realtyService.findTop5ByCriteria(request);
+
+        return dto.getRealtyEntityList().isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(dto);
     }
 
     @GetMapping("/price-range")
-    public PriceRangeResponse getPriceRange() {
-        return realtyService.getPriceRange();
+    @Operation(
+            summary = "Диапазон цен",
+            description = "Возвращает минимальную и максимальную цену всех объявлений."
+    )
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(schema = @Schema(implementation = PriceRangeResponseDTO.class)))
+    public ResponseEntity<PriceRangeResponseDTO> getPriceRange() {
+        return ResponseEntity.ok(realtyService.getPriceRange());
     }
 
+
     @GetMapping("/area-range")
-    public AreaRangeResponse getAreaRange() {
-        return realtyService.getAreaRange();
+    @Operation(
+            summary = "Диапазон площадей",
+            description = "Возвращает минимальную и максимальную площадь объектов."
+    )
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(schema = @Schema(implementation = AreaRangeResponseDTO.class)))
+    public ResponseEntity<AreaRangeResponseDTO> getAreaRange() {
+        return ResponseEntity.ok(realtyService.getAreaRange());
     }
 
 }
