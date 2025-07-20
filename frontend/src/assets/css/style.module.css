@@ -1,0 +1,291 @@
+/* ------------------- ОСНОВНЫЕ БЛОКИ ------------------- */
+.main{margin-top:20px;flex:1}
+
+.heading1 {
+  font-weight: 800;
+  font-size: 36px;
+  margin: 0;
+  text-align: center;
+}
+
+.heading2 {
+  font-weight: 800;
+  font-size: 20px;
+  text-align: center;
+}
+
+.heading3 {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.container{max-width:1960px;padding:0 20px;margin:0 auto;
+           display:flex;gap:20px;grid-auto-rows:1fr;}
+
+.mapSettings{min-width:412px;flex-basis:20%;margin-top:20px;
+             display:flex;flex-direction:column;gap:20px}
+
+.mapDescr   {display:flex;flex-direction:column;gap:45px}
+.mapDescrTitle    {text-align:center;margin-top:36px}
+.mapDescrSubtitle {font-weight:500;opacity:.85;font-size:20px;margin-top:8px;text-align:center}
+.mapDescrPlace    {color:#fff}
+
+/* ------------------- КАРТА ------------------- */
+.map{position:relative;margin:20px 50px;
+     box-shadow:0 14px 28px rgba(0,0,0,.25),0 10px 10px rgba(0,0,0,.22);
+     border-radius:var(--container-radius);overflow:hidden;border:none;
+     height:100%;display:flex;justify-content:center;align-items:center;
+     max-width:100%;max-height:89vh}
+
+.mapImg{width:100%;height:auto;object-fit:cover;max-width:100%;max-height:90vh}
+
+.markersContainer{position:absolute;inset:0;pointer-events:none;touch-action:none}
+
+/* ------------------- ФОРМА / ПАРАМЕТРЫ ------------------- */
+.paramsContainer{border:1px solid #ccc;border-radius:var(--container-radius);
+                 padding:12px;display:flex;flex-direction:column;gap:15px}
+
+.inputContainer{display:flex;flex-wrap:wrap;gap:8px}
+.inputsRow     {display:flex;gap:8px;width:100%}
+.inputWrapper  {position:relative;display:inline-flex;width:100%}
+.clearBtn      {position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                cursor:pointer;display:none}
+.inputWrapper:has(input:not(:placeholder-shown)) .clearBtn{display:block}
+
+.input{font-size:16px;background:transparent;width:100%;
+       border:2px solid var(--input-border);border-radius:var(--input-radius);
+       padding:14px 16px;font-weight:500;color:var(--input-border)}
+.input:hover,.input:focus{border-color:var(--accent);outline:none}
+.input::placeholder{font-size:12px;color:var(--input-border)}
+
+.btn{border-radius:20px;border:1px solid var(--accent);background:var(--accent);
+     color:#fff;font-size:12px;font-weight:700;padding:12px 45px;letter-spacing:1px;
+     text-transform:uppercase;transition:transform 80ms ease-in;
+     display:flex;justify-content:center;align-items:center;gap:4px;width:100%}
+.btn:active{transform:scale(.95)}
+.btn:focus {outline:2px solid var(--accent)}
+
+/* --- выпадающие списки --- */
+
+/* ----------- DROPDOWN ----------- */
+.dropdownContainer {
+  position: relative;
+  width: 100%;
+}
+
+.dropbtn {
+  background: transparent;
+  border: 2px solid var(--input-border);
+  padding: 14px 16px;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--input-radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--input-border);
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.dropbtn:hover,
+.dropbtn:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.arrow {
+  margin-left: 8px;
+  transition: transform 0.2s;
+}
+
+.dropdownContent {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 280px;
+  border: 2px solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: #fff;
+  color: var(--input-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dropdownContent label {
+  display: flex;
+  align-items: center;
+  gap: 10px;               /* расстояние между чекбокс/радио и текстом */
+  padding: 10px 16px;      /* внутренние отступы */
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dropdownContent label:first-child {
+  border-top-left-radius: var(--input-radius);
+  border-top-right-radius: var(--input-radius);
+}
+
+.dropdownContent label:last-child {
+  border-bottom-left-radius: var(--input-radius);
+  border-bottom-right-radius: var(--input-radius);
+}
+
+.dropdownContent label:hover {
+  background-color: #f0f0f0;
+}
+
+input[type="radio"] {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--input-border);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--input-border);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+label input[type="radio"]:checked:before {
+    content: "";
+    background-color: #fff;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}   
+
+label input[type="checkbox"]:checked:before {
+content: "";
+    width: 12px;
+    height: 6px;
+    border-bottom: 2px solid #fff;
+    border-left: 2px solid #fff;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+}   
+
+/* --- автокомплит --- */
+.autocomplete{position:relative;width:100%}
+.autocompleteList{position:absolute;width:100%;margin-top:2px;
+                  border:2px solid var(--input-border);border-radius:var(--input-radius);
+                  background:#fff;color:var(--input-border);max-height:200px;
+                  padding:10px 0;overflow-y:auto;z-index:10}
+.autocompleteItem{padding:10px 16px;cursor:pointer;font-weight:500}
+.autocompleteItem:hover{background:#f0f0f0}
+
+/* --- теги --- */
+.tagsСontainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #FF4B2B;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 8px;
+}
+.tagText {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag .removeBtn {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.tag .removeBtn:hover {
+    color: #FFDADA;
+}
+
+/* ------------------- МАРКЕРЫ ------------------- */
+.marker,.placeMarker{position:absolute;width:var(--marker-size);height:var(--marker-size);
+                     background:var(--marker-color);border-radius:50%;
+                     border:var(--marker-border);box-shadow:var(--marker-shadow);
+                     transform:translate(-50%,-50%);cursor:pointer;pointer-events:auto;
+                     z-index:var(--marker-z);transition:var(--marker-transition)}
+.marker:hover,.placeMarker:hover{transform:translate(-50%,-50%) scale(1.1);z-index:var(--marker-z-hover)}
+.marker:focus,.placeMarker:focus{box-shadow:0 0 0 3px var(--accent);z-index:var(--marker-z-hover)}
+
+.groupMarker{background:var(--marker-group-color)}
+.markerCount{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+             color:#fff;font-weight:700;font-size:.85rem}
+
+.placeMarkerGreen{background:#34A853}
+.placeMarkerRed  {background:#EA4335}
+
+/* --- тултипы --- */
+.tooltip{display:none;position:absolute;pointer-events:auto;
+         background:var(--tooltip-bg);border:var(--tooltip-border);
+         border-radius:var(--tooltip-radius);padding:12px;
+         width:var(--tooltip-width);max-height:min(300px,50vh);overflow-y:auto;
+         box-shadow:var(--tooltip-shadow);z-index:var(--tooltip-z);box-sizing:border-box}
+.tooltipItem{padding:8px 0;border-bottom:1px solid #eee}
+.tooltipItem:last-child{border-bottom:none}
+.tooltipItem strong{color:var(--accent)}
+
+/* ------------------- BEST PLACES ------------------- */
+.bestPlaces{background:linear-gradient(to right,var(--accent),var(--accent-light));
+            color:#fff;padding:12px;border-radius:var(--container-radius);
+            display:flex;flex-direction:column;gap:10px}
+.placeBtn  {background:transparent;border:1px solid #fff;color:#fff;
+            border-radius:var(--input-radius);padding:12px 14px;cursor:pointer;
+            transition:background .3s;display:flex;justify-content:center;align-items:center;gap:12px;width:100%}
+.placeBtn:hover{background:rgba(255,255,255,.2)}
+
+/* ------------------- МЕДИА ------------------- */
+@media (max-width:600px){
+  .mapSettings{min-width:100%;gap:10px}
+  .container {flex-direction:column;gap:10px;padding:0 5px}
+  .map       {margin:0;border-radius:16px}
+}

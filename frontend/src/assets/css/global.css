@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+html {
+    box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f6f5f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: 'Montserrat', sans-serif;
+    height: 100vh;
+    margin: -20px 0 50px;
+}
+
+
+:root {
+  --main-bg: #f6f5f7;
+  --main-font: 'Montserrat', sans-serif;
+  --accent: #FF4B2B;
+  --accent-light: #FF416C;
+  --input-border: #000000;
+  --input-radius: 24px;
+  --container-radius: 32px;
+  --tag-radius: 8px;
+  --modal-radius: 16px;
+  --marker-size: 28px;
+  --marker-color: #ff0000;
+  --marker-group-color: #ff7700;
+  --marker-border: 2px solid #fff;
+  --marker-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  --marker-z: 10;
+  --marker-z-hover: 20;
+  --marker-transition: transform 0.2s, z-index 0.3s;
+  --tooltip-bg: #fff;
+  --tooltip-border: 1px solid #ccc;
+  --tooltip-radius: 8px;
+  --tooltip-width: 250px;
+  --tooltip-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --tooltip-z: 1000;
+  --tooltip-arrow-size: 12px;
+  --tooltip-scrollbar-thumb: #FF4B2B;
+  --tooltip-scrollbar-track: #f0f0f0;
+}
