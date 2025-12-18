@@ -21,6 +21,7 @@ public class RoleEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String roleName;
 
+    @Builder.Default
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<UserEntity> users = new ArrayList<>();
