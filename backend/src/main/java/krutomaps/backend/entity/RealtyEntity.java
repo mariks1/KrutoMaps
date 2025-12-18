@@ -2,6 +2,7 @@ package krutomaps.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.locationtech.jts.geom.Point;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -22,6 +23,9 @@ public class RealtyEntity implements Serializable {
 
     @Column(name = "point_y", nullable = false)
     private Double pointY;
+
+    @Column(columnDefinition = "geography(Point,4326)", insertable = false, updatable = false)
+    private Point geom;
 
     @Column(name = "main_type", nullable = false)
     private String mainType;
@@ -54,4 +58,5 @@ public class RealtyEntity implements Serializable {
 
     @Column(name = "square_num", nullable = false)
     private Long squareNum;
+
 }

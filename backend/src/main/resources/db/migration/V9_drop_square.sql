@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS square_score;
+DROP TABLE IF EXISTS square;
