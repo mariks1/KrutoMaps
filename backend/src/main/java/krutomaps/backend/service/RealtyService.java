@@ -174,7 +174,7 @@ public class RealtyService {
 
         double dist = DistanceCalculator.calculateDistance(
                 bestSquare.getCenterLat(), bestSquare.getCenterLon(),
-                re.getPointX(), re.getPointX());
+                re.getPointX(), re.getPointY());
 
         double factor = 1 / (1 + dist);
 
