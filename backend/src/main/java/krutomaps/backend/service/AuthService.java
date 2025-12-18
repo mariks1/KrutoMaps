@@ -16,20 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private static final String DEFAULT_ROLE = "USER";
+
     private final UserService userService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
 
-
     @Transactional(rollbackFor = Exception.class)
     public JwtAuthenticationResponseDTO signUp(SignUpRequestDTO request) {
-
         RoleEntity roleEntity = roleRepository
-                .findByRoleName(request.getRole())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Роль не найдена: " + request.getRole()));
+                .findByRoleName(DEFAULT_ROLE)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + DEFAULT_ROLE));
 
         UserEntity user = UserEntity.builder()
                 .username(request.getUsername())
@@ -40,16 +39,9 @@ public class AuthService {
         userService.create(user);
 
         var jwt = jwtService.generateToken(user);
-        boolean isAdmin = "ADMIN".equalsIgnoreCase(request.getRole());
-        return new JwtAuthenticationResponseDTO(jwt, isAdmin);
+        return new JwtAuthenticationResponseDTO(jwt, false);
     }
 
-    /**
-     * Аутентификация пользователя
-     *
-     * @param request данные пользователя
-     * @return токен
-     */
     public JwtAuthenticationResponseDTO signIn(SignInRequestDTO request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getUsername(),
@@ -60,12 +52,9 @@ public class AuthService {
                 .userDetailsService()
                 .loadUserByUsername(request.getUsername());
 
-        boolean isAdmin = "ADMIN".equalsIgnoreCase(
-                user.getRole().getRoleName()
-        );
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
 
         String jwt = jwtService.generateToken(user);
         return new JwtAuthenticationResponseDTO(jwt, isAdmin);
     }
-
 }

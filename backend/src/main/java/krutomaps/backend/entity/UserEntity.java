@@ -8,10 +8,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter @Setter
@@ -43,6 +41,10 @@ public class UserEntity implements Serializable, UserDetails {
     @Builder.Default
     private boolean credentialsNonExpired = true;
 
+    @Column(name = "enabled")
+    @Builder.Default
+    private boolean enabled = true;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
@@ -52,4 +54,23 @@ public class UserEntity implements Serializable, UserDetails {
         return List.of(new SimpleGrantedAuthority(role.getRoleName()));
     }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return credentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }

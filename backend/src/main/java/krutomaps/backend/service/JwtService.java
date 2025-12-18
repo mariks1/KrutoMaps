@@ -2,24 +2,33 @@ package krutomaps.backend.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.io.Decoders;
 import krutomaps.backend.entity.UserEntity;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class JwtService {
 
-    private final String jwtSigningKey = "53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855";
+    private final SecretKey signingKey;
+
+    public JwtService(@Value("${security.jwt.secret}") String jwtSigningKey) {
+        if (jwtSigningKey == null || jwtSigningKey.isBlank()) {
+            throw new IllegalArgumentException("JWT signing key must be provided via 'security.jwt.secret'");
+        }
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException("JWT signing key must be at least 256 bits after Base64 decoding");
+        }
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String extractUserName(String token) {
         return extractAllClaims(token).getSubject();
@@ -68,8 +77,7 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Base64.getDecoder().decode(jwtSigningKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 
 
