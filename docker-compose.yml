@@ -3,8 +3,8 @@ services:
     image: postgres:17
     container_name: km_postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: kruto
     ports:
       - "5432:5432"
@@ -19,7 +19,6 @@ services:
       dockerfile: Dockerfile
     container_name: km_backend
     environment:
-
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kruto
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
